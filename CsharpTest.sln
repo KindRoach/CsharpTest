@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "单元测试", "单元测�
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "单元测试项目", "单元测试项目\单元测试项目.csproj", "{B17D4F9D-C1D9-49D0-A760-044E4298FD2D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "任务、线程与同步", "任务、线程与同步\任务、线程与同步.csproj", "{F2A3B964-C627-4870-9E80-93A948100E07}"
+EndProject
 Global
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true
@@ -142,6 +144,18 @@ Global
 		{B17D4F9D-C1D9-49D0-A760-044E4298FD2D}.Release|x64.Build.0 = Release|Any CPU
 		{B17D4F9D-C1D9-49D0-A760-044E4298FD2D}.Release|x86.ActiveCfg = Release|Any CPU
 		{B17D4F9D-C1D9-49D0-A760-044E4298FD2D}.Release|x86.Build.0 = Release|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Debug|x64.Build.0 = Debug|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Debug|x86.Build.0 = Debug|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Release|x64.ActiveCfg = Release|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Release|x64.Build.0 = Release|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Release|x86.ActiveCfg = Release|Any CPU
+		{F2A3B964-C627-4870-9E80-93A948100E07}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
