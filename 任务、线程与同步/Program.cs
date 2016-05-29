@@ -19,7 +19,8 @@ namespace 任务_线程与同步
             //Console.WriteLine(ParallelExample.ForTLocal(1000000));
             //ParallelExample.ForEachTLocal(1000000);
             //ParallelExample.Invoke(100);
-            TaskExample.TaskWithMultiClass();
+            //TaskExample.TaskWithMultiClass();
+            ParallelExample.ParallelWithCancellation();
             Console.ReadLine();
         }
     }
@@ -134,7 +135,39 @@ namespace 任务_线程与同步
             }
             Parallel.Invoke(actionList.ToArray());
         }
+        
+        public static void ParallelWithCancellation()
+        {
+            var cts = new CancellationTokenSource();
+            cts.Token.Register(() => Console.WriteLine("*** token canceled"));
+            // send a cancel after 500 ms
+            cts.CancelAfter(500);
+            try
+            {
+                ParallelLoopResult result =
+                Parallel.For(0, 100, new ParallelOptions()
+                {
+                    CancellationToken = cts.Token,
+                },
+                x =>
+                {
+                    Console.WriteLine("loop {0} started", x);
+                    int sum = 0;
+                    for (int i = 0; i < 100; i++)
+                    {
+                        Thread.Sleep(2);
+                        sum += i;
+                    }
+                    Console.WriteLine("loop {0} finished", x);
+                });
+            }
+            catch (OperationCanceledException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
     }
+
 
     public class TaskExample
     {
@@ -149,16 +182,15 @@ namespace 任务_线程与同步
         }
         static void ParentTask()
         {
-            Console.WriteLine("parent task id {0}", Task.CurrentId);
+            Console.WriteLine("parent task id: {0}", Task.CurrentId);
             var child = new Task(ChildTask, TaskCreationOptions.AttachedToParent);
             child.Start();
             Thread.Sleep(1000);
-            Console.WriteLine("parent started child");
             Console.WriteLine($"child.Status: {child.Status}");
         }
         static void ChildTask()
         {
-            Console.WriteLine("child");
+            Console.WriteLine("child start");
             Thread.Sleep(5000);
             Console.WriteLine("child finished");
         }
