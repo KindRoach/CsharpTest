@@ -17,7 +17,9 @@ namespace 任务_线程与同步
             //ParallelExample.ForWithBreak(1000);
             //ParallelExample.NormalFor(10000000);
             //Console.WriteLine(ParallelExample.ForTLocal(1000000));
-            ParallelExample.ForEachTLocal(1000000);
+            //ParallelExample.ForEachTLocal(1000000);
+            //ParallelExample.Invoke(100);
+            TaskExample.TaskWithMultiClass();
             Console.ReadLine();
         }
     }
@@ -120,6 +122,45 @@ namespace 任务_线程与同步
                 Interlocked.Add(ref total, subtotal);
             });
             Console.WriteLine(total);
+        }
+
+        public static void Invoke(int x)
+        {
+            List<Action> actionList = new List<Action>();
+            for (int i = 0; i < x; i++)
+            {
+                int no = i;
+                actionList.Add(() => { Console.WriteLine($"Aciton {no} done!"); });
+            }
+            Parallel.Invoke(actionList.ToArray());
+        }
+    }
+
+    public class TaskExample
+    {
+        public static void TaskWithMultiClass()
+        {
+            var parent = new Task(ParentTask);
+            parent.Start();
+            Thread.Sleep(2000);
+            Console.WriteLine($"parent.Status: {parent.Status}");
+            Thread.Sleep(4000);
+            Console.WriteLine($"parent.Status: {parent.Status}");
+        }
+        static void ParentTask()
+        {
+            Console.WriteLine("parent task id {0}", Task.CurrentId);
+            var child = new Task(ChildTask, TaskCreationOptions.AttachedToParent);
+            child.Start();
+            Thread.Sleep(1000);
+            Console.WriteLine("parent started child");
+            Console.WriteLine($"child.Status: {child.Status}");
+        }
+        static void ChildTask()
+        {
+            Console.WriteLine("child");
+            Thread.Sleep(5000);
+            Console.WriteLine("child finished");
         }
     }
 }
