@@ -16,8 +16,8 @@ namespace 任务_线程与同步
             //ParallelExample.ForWithSleep(10);
             //ParallelExample.ForWithBreak(1000);
             //ParallelExample.NormalFor(10000000);
-            Console.WriteLine(ParallelExample.ForTLocal(10));
-
+            //Console.WriteLine(ParallelExample.ForTLocal(1000000));
+            ParallelExample.ForEachTLocal(1000000);
             Console.ReadLine();
         }
     }
@@ -79,21 +79,47 @@ namespace 任务_线程与同步
 
         public static long ForTLocal(int x)
         {
-            //Add 0 to x
             int[] nums = Enumerable.Range(0, x).ToArray();
-            long total = 0;
 
-            // Use type parameter to make subtotal a long, not an int
-            Parallel.For<long>(0, nums.Length, () => 0, (j, loop, subtotal) =>
-            {
-                subtotal += nums[j];
-                return subtotal;
-            },
-                (subtotal) => Interlocked.Add(ref total, subtotal)
+            long total = 0;
+            Parallel.For<long>(0, nums.Length,
+            () =>
+             {
+                 Console.WriteLine($"Thread{Thread.CurrentThread.ManagedThreadId} start.");
+                 return 0;
+             },
+            (j, loop, subtotal) =>
+             {
+                 subtotal += nums[j];
+                 return subtotal;
+             },
+            (subtotal) =>
+             {
+                 Interlocked.Add(ref total, subtotal);
+                 Console.WriteLine($"Thread{Thread.CurrentThread.ManagedThreadId} end.");
+             }
             );
 
             return total;
 
+        }
+
+        public static void ForEachTLocal(int x)
+        {
+            int[] nums = Enumerable.Range(0, x).ToArray();
+            long total = 0;
+            ParallelLoopResult result =
+            Parallel.ForEach<int, long>(nums, () => 0,
+            (i, pls, subtotal) =>
+            {
+                subtotal += nums[i];
+                return subtotal;
+            },
+            (subtotal) =>
+            {
+                Interlocked.Add(ref total, subtotal);
+            });
+            Console.WriteLine(total);
         }
     }
 }
