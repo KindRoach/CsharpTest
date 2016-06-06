@@ -20,7 +20,9 @@ namespace 任务_线程与同步
             //ParallelExample.ForEachTLocal(1000000);
             //ParallelExample.Invoke(100);
             //TaskExample.TaskWithMultiClass();
-            ParallelExample.ParallelWithCancellation();
+            //ParallelExample.ParallelWithCancellation();
+            //ThreadPoolExample.ThreadTest(5);
+            ThreadExample.StartThread(5);
             Console.ReadLine();
         }
     }
@@ -135,7 +137,7 @@ namespace 任务_线程与同步
             }
             Parallel.Invoke(actionList.ToArray());
         }
-        
+
         public static void ParallelWithCancellation()
         {
             var cts = new CancellationTokenSource();
@@ -193,6 +195,54 @@ namespace 任务_线程与同步
             Console.WriteLine("child start");
             Thread.Sleep(5000);
             Console.WriteLine("child finished");
+        }
+    }
+
+    public class ThreadExample
+    {
+        public static void StartThread(int x)
+        {
+            ThreadWithPar twp = new ThreadWithPar(x);
+            Thread t = new Thread(twp.ThreadMain);
+            t.Start();
+        }
+    }
+
+    public class ThreadWithPar
+    {
+        public int ID { get; set; }
+        public ThreadWithPar(int newID)
+        {
+            ID = newID;
+        }
+        public void ThreadMain()
+        {
+            Console.WriteLine($"ID is {ID}");
+        }
+    }
+
+    public class ThreadPoolExample
+    {
+        public static void ThreadTest(int x)
+        {
+            int nWorkerThreads;
+            int nCompletionPortThreads;
+            ThreadPool.GetMaxThreads(out nWorkerThreads, out nCompletionPortThreads);
+            Console.WriteLine("Max worker threads: {0}, " +
+            "I/O completion threads: {1}", nWorkerThreads, nCompletionPortThreads);
+            for (int i = 0; i < x; i++)
+            {
+                ThreadPool.QueueUserWorkItem(JobForAThread);
+            }
+            Thread.Sleep(3000);
+        }
+
+        private static void JobForAThread(object state)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                Console.WriteLine($"loop:{i} runing inside pooled thread:{Thread.CurrentThread.ManagedThreadId}");
+            }
         }
     }
 }
