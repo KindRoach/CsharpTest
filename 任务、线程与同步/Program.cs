@@ -22,7 +22,7 @@ namespace 任务_线程与同步
             //TaskExample.TaskWithMultiClass();
             //ParallelExample.ParallelWithCancellation();
             //ThreadPoolExample.ThreadTest(5);
-            ThreadExample.StartThread(5);
+            ThreadExample.StartThread(5, () => { Console.WriteLine("Thread done!"); });
             Console.ReadLine();
         }
     }
@@ -200,24 +200,54 @@ namespace 任务_线程与同步
 
     public class ThreadExample
     {
-        public static void StartThread(int x)
+        public static void StartThread(int id, Action callBack)
         {
-            ThreadWithPar twp = new ThreadWithPar(x);
-            Thread t = new Thread(twp.ThreadMain);
+            ThreadWithPar twp = new ThreadWithPar(id, callBack);
+            //Thread t = new Thread(twp.ThreadMain);
+            //t.Start();
+            Thread t = new Thread(twp.ThreadMainWithAbort);
             t.Start();
+            Thread.Sleep(500);
+            t.Abort();
+            Console.WriteLine("Call Abort()");
         }
     }
+
 
     public class ThreadWithPar
     {
         public int ID { get; set; }
-        public ThreadWithPar(int newID)
+        public Action CallBack { get; set; }
+
+        public ThreadWithPar(int newID, Action newCallBack)
         {
             ID = newID;
+            CallBack = newCallBack;
         }
         public void ThreadMain()
         {
             Console.WriteLine($"ID is {ID}");
+            CallBack?.Invoke();
+        }
+        public void ThreadMainWithAbort()
+        {
+            try
+            {
+                Console.WriteLine($"Try: before abort, state: {Thread.CurrentThread.ThreadState}");
+                Thread.Sleep(1000);
+                Console.WriteLine($"Try: after abort, state: {Thread.CurrentThread.ThreadState}");
+            }
+            catch (ThreadAbortException tae)
+            {
+                Console.WriteLine($"Catch: before reste, state: {Thread.CurrentThread.ThreadState}   " + tae.GetType());
+                Thread.ResetAbort();
+                Console.WriteLine($"Catch: after reste, state: {Thread.CurrentThread.ThreadState}");
+            }
+            finally
+            {
+                Console.WriteLine($"Finally: state: {Thread.CurrentThread.ThreadState}");
+            }
+            Console.WriteLine($"After Try: state:{Thread.CurrentThread.ThreadState}");
         }
     }
 
