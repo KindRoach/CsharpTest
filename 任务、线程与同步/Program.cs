@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -22,7 +23,8 @@ namespace 任务_线程与同步
             //TaskExample.TaskWithMultiClass();
             //ParallelExample.ParallelWithCancellation();
             //ThreadPoolExample.ThreadTest(5);
-            ThreadExample.StartThread(5, () => { Console.WriteLine("Thread done!"); });
+            //ThreadExample.StartThread(5, () => { Console.WriteLine("Thread done!"); });
+            LockExample.MakeCrash();
             Console.ReadLine();
         }
     }
@@ -170,7 +172,6 @@ namespace 任务_线程与同步
         }
     }
 
-
     public class TaskExample
     {
         public static void TaskWithMultiClass()
@@ -212,7 +213,6 @@ namespace 任务_线程与同步
             Console.WriteLine("Call Abort()");
         }
     }
-
 
     public class ThreadWithPar
     {
@@ -275,4 +275,43 @@ namespace 任务_线程与同步
             }
         }
     }
+
+    public class LockExample
+    {
+        public static void MakeCrash()
+        {
+            PublicState ps = new PublicState();
+            for (int i = 0; i < 8; i++)
+            {
+                Task.Run(() => { RepeatAdd(ps); });
+            }
+        }
+
+        public static void RepeatAdd(PublicState ps)
+        {
+            int i = 0;
+            while (true)
+            {
+                ps.AddData(i);
+                i++;
+            }
+        }
+    }
+
+    public class PublicState
+    {
+        private int data = 5;
+        private object syncObj = new object();
+        public void AddData(int loop)
+        {
+            lock (syncObj)          //There ara going to be crash without this line 
+            {
+                data++;
+                if (data != 6)
+                    Console.WriteLine($"Data is {data}: Loop{loop} : Task{Task.CurrentId} : Thread{Thread.CurrentThread.ManagedThreadId}");
+                data = 5;
+            }
+        }
+    }
+
 }
