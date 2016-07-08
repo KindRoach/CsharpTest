@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace 任务_线程与同步
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-
             //Console.ReadLine();
             //ParallelExample.ForWithSleep(10);
             //ParallelExample.ForWithBreak(1000);
@@ -24,7 +21,11 @@ namespace 任务_线程与同步
             //ParallelExample.ParallelWithCancellation();
             //ThreadPoolExample.ThreadTest(5);
             //ThreadExample.StartThread(5, () => { Console.WriteLine("Thread done!"); });
-            LockExample.MakeCrash();
+            //LockExample.MakeCrash();
+            //{
+            //    DeadLockExample dle = new DeadLockExample(new PublicState(0), new PublicState(0));
+            //    dle.Start();
+            //}
             Console.ReadLine();
         }
     }
@@ -108,7 +109,6 @@ namespace 任务_线程与同步
             );
 
             return total;
-
         }
 
         public static void ForEachTLocal(int x)
@@ -183,7 +183,8 @@ namespace 任务_线程与同步
             Thread.Sleep(4000);
             Console.WriteLine($"parent.Status: {parent.Status}");
         }
-        static void ParentTask()
+
+        private static void ParentTask()
         {
             Console.WriteLine("parent task id: {0}", Task.CurrentId);
             var child = new Task(ChildTask, TaskCreationOptions.AttachedToParent);
@@ -191,7 +192,8 @@ namespace 任务_线程与同步
             Thread.Sleep(1000);
             Console.WriteLine($"child.Status: {child.Status}");
         }
-        static void ChildTask()
+
+        private static void ChildTask()
         {
             Console.WriteLine("child start");
             Thread.Sleep(5000);
@@ -224,11 +226,13 @@ namespace 任务_线程与同步
             ID = newID;
             CallBack = newCallBack;
         }
+
         public void ThreadMain()
         {
             Console.WriteLine($"ID is {ID}");
             CallBack?.Invoke();
         }
+
         public void ThreadMainWithAbort()
         {
             try
@@ -280,38 +284,121 @@ namespace 任务_线程与同步
     {
         public static void MakeCrash()
         {
-            PublicState ps = new PublicState();
+            PublicStateWithLock ps = new PublicStateWithLock();
             for (int i = 0; i < 8; i++)
             {
-                Task.Run(() => { RepeatAdd(ps); });
+                Task.Run(() => { RepeatAdd1(ps); });
+            }
+            for (int i = 0; i < 8; i++)
+            {
+                Task.Run(() => { RepeatAdd2(ps); });
             }
         }
 
-        public static void RepeatAdd(PublicState ps)
+        public static void RepeatAdd1(PublicStateWithLock ps)
+        {
+            int i = 0;
+            while (true)
+            {
+                //lock (ps)
+                {
+                    ps.AddData(i);
+                    i++;
+                }
+            }
+        }
+
+        public static void RepeatAdd2(PublicStateWithLock ps)
         {
             int i = 0;
             while (true)
             {
                 ps.AddData(i);
+                //Console.WriteLine("Add2");
                 i++;
+            }
+        }
+    }
+
+    public class PublicStateWithLock
+    {
+        private int data = 5;
+        private object syncObj = new object();
+
+        public void AddData(int loop)
+        {
+            lock (syncObj)
+            {
+                data++;
+                if (data != 6)
+                    Console.WriteLine($"Data is {data}: Loop{loop} "
+                        + $": Task{Task.CurrentId} "
+                        + $": Thread{Thread.CurrentThread.ManagedThreadId}");
+                data = 5;
             }
         }
     }
 
     public class PublicState
     {
-        private int data = 5;
-        private object syncObj = new object();
-        public void AddData(int loop)
+        public int Data { get; set; }
+
+        public PublicState(int newData)
         {
-            lock (syncObj)          //There ara going to be crash without this line 
-            {
-                data++;
-                if (data != 6)
-                    Console.WriteLine($"Data is {data}: Loop{loop} : Task{Task.CurrentId} : Thread{Thread.CurrentThread.ManagedThreadId}");
-                data = 5;
-            }
+            Data = newData;
         }
     }
 
+    public class DeadLockExample
+    {
+        public PublicState Data1 { get; set; }
+        public PublicState Data2 { get; set; }
+
+        public DeadLockExample(PublicState newData1, PublicState newData2)
+        {
+            Data1 = newData1;
+            Data2 = newData2;
+        }
+
+        private void ChangeData1()
+        {
+            while (true)
+            {
+                lock (Data1)
+                {
+                    lock (Data2)
+                    {
+                        Data1.Data++;
+                        Data2.Data++;
+                        Console.WriteLine($"Data1:{Data1.Data} Data2:{Data2.Data} Still ruing");
+                    }
+                }
+            }
+        }
+
+        private void ChangeData2()
+        {
+            while (true)
+            {
+                lock (Data2)
+                {
+                    lock (Data1)
+                    {
+                        Data1.Data++;
+                        Data2.Data++;
+                        Console.WriteLine($"Data1:{Data1.Data} Data2:{Data2.Data} Still ruing");
+                    }
+                }
+            }
+        }
+
+        public void Start()
+        {
+            Task t1 = new Task(ChangeData1);
+            Task t2 = new Task(ChangeData2);
+            t1.Start();
+            t2.Start();
+
+        }
+    }
 }
